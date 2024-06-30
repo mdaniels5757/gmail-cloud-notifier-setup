@@ -1,0 +1,1 @@
+This (together with https://github.com/mdaniels5757/gmail-cloud-notifier-cron) contains a way to notify me when I get an email matching certain requirements. It does this using Google Cloud Functions and Scheduler.
