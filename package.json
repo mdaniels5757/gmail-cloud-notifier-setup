@@ -20,7 +20,7 @@
     "test": "mocha"
   },
   "dependencies": {
-    "@google-cloud/datastore": "^9.0.0",
+    "@google-cloud/datastore": "^9.1.0",
     "@google-cloud/logging": "^11.1.0",
     "@google-cloud/logging-bunyan": "^5.1.0",
     "@google-cloud/pubsub": "^4.5.0",
