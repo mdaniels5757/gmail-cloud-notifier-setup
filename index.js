@@ -16,10 +16,6 @@
  */
 'use strict';
 
-const { google } = require('googleapis');
-const oauth = require('./lib/oauth');
-const gmail = google.gmail({ version: 'v1', auth: oauth.client });
-const querystring = require('querystring');
 const logger = require('./lib/log').logger;
 
 /**
@@ -28,6 +24,7 @@ const logger = require('./lib/log').logger;
  * their auth data) need visit this page
  */
 exports.oauth2init = (_, res) => {
+  const oauth = require('./lib/oauth');
   // Define OAuth2 scopes
   const scopes = [
     'https://www.googleapis.com/auth/gmail.readonly'
@@ -47,6 +44,11 @@ exports.oauth2init = (_, res) => {
  * Get an access token from the authorization code and store token in Datastore
  */
 exports.oauth2callback = (req, res) => {
+  const oauth = require('./lib/oauth');
+  const { google } = require('googleapis');
+  const gmail = google.gmail({ version: 'v1', auth: oauth.client });
+  const querystring = require('querystring');
+
   // Get authorization code from request
   const code = req.query.code;
   // OAuth2: Exchange authorization code for access token
@@ -87,9 +89,11 @@ exports.oauth2callback = (req, res) => {
 };
 
 // This is not secure, but since only I have access to it it's OK.
+// TODO: remove? Not worth effort.
+/*
 exports.setCron = (req, res) => {
-  const { Datastore } = require('@google-cloud/datastore');
-  const datastore = new Datastore({ databaseId: 'gmail-notifier' });
+  const querystring = require('querystring');
+  const datastore = require('./lib/datastore').datastore;
   const { CloudSchedulerClient } = require('@google-cloud/scheduler').v1;
   const schedulerClient = new CloudSchedulerClient({
     projectId: process.env.GCLOUD_PROJECT
@@ -106,43 +110,23 @@ exports.setCron = (req, res) => {
     return res.status(400).send('Invalid emailAddress.');
   }
 
-  // Retrieve the stored OAuth 2.0 access token
-  return oauth.fetchToken(email)
-  /* .then(() => {
-      logger.debug({ entry: 'Here' });
-      // return pubsub.getTopic('gmail-notifier-' + email.substring(0, email.indexOf('@')))
-      return pubsub.createTopic('gmail-notifier-' + email.substring(0, email.indexOf('@')))
-        .then((topic) => {
-          logger.debug({ entry: JSON.stringify(topic, null, 4) });
-          return topic;
-        });
-    }) *//*
-    .then((maybeTopic) => {
-      logger.debug({ entry: JSON.stringify(maybeTopic, null, 4) });
-      if (Object.hasOwn(maybeTopic, 'error')) {
-        return pubsub.createTopic('gmail-notifier-' + email.substring(0, email.indexOf('@')));
-      } else {
-        return maybeTopic;
-      }
-    }) */
-    .then(() => {
-      const location = 'projects/' + process.env.GCLOUD_PROJECT + '/locations/' + process.env.GCF_REGION;
-      logger.debug({ entry: 'location: ' + location });
-      return schedulerClient.createJob({
-        parent: location,
-        job: {
-          description: 'gmail notifier for ' + email,
-          schedule: '*/7 * * * *',
-          pubsubTarget: {
-            topicName: 'projects/' + process.env.GCLOUD_PROJECT + '/topics/gmail-notifier-' + email.substring(0, email.indexOf('@')),
-            attributes: {
-              emailAddress: email,
-              time: Date.now()
-            }
-          }
+  const location = 'projects/' + process.env.GCLOUD_PROJECT + '/locations/' + process.env.GCF_REGION;
+  logger.debug({ entry: 'location: ' + location });
+
+  return schedulerClient.createJob({
+    parent: location,
+    job: {
+      description: 'gmail notifier for ' + email,
+      schedule: \'\*\/7 * * * *', // TODO: remove backslashes if uncommenting.
+      pubsubTarget: {
+        topicName: 'projects/' + process.env.GCLOUD_PROJECT + '/topics/gmail-notifier-' + email.substring(0, email.indexOf('@')),
+        data: {
+          emailAddress: email,
+          time: Date.now()
         }
-      });
-    })
+      }
+    }
+  })
     .then((job) => {
       logger.debug({ entry: JSON.stringify(job, null, 4) });
       return datastore.save({
@@ -164,9 +148,11 @@ exports.setCron = (req, res) => {
       res.status(500).send('Something went wrong; check the logs.');
     });
 };
+*/
 
 // This is not secure, but since only I have access to it it's OK.
 exports.setEditQuery = (req, res) => {
+  const querystring = require('querystring');
   const { Datastore } = require('@google-cloud/datastore');
   const datastore = new Datastore({ databaseId: 'gmail-notifier' });
 
@@ -179,15 +165,10 @@ exports.setEditQuery = (req, res) => {
     if (!email.includes('@')) {
       return res.status(400).send('Invalid emailAddress.');
     }
-    oauth.fetchToken(email)
-      .then(() => {
-        return datastore.get({
-          key: datastore.key(['query', email])
-        })
-          .catch((err) => {
-            logger.warn({ entry: JSON.stringify(err, null, 4) });
-            return null;
-          });
+    datastore.get(datastore.key(['query', email]))
+      .catch((err) => {
+        logger.warn({ entry: JSON.stringify(err, null, 4) });
+        return null;
       })
       .then((currentQueryObj) => {
         logger.info({ entry: 'currentQueryObj is ' + JSON.stringify(currentQueryObj, null, 4) });
@@ -209,7 +190,7 @@ exports.setEditQuery = (req, res) => {
       })
       .catch((err) => {
         // Handle errors
-        logger.error({ entry: err });
+        logger.error({ entry: JSON.stringify(err, null, 4) });
         res.status(500).send('Something went wrong; check the logs.');
       });
   } else if (req.method === 'POST') {
@@ -230,7 +211,7 @@ exports.setEditQuery = (req, res) => {
       })
       .catch((err) => {
         // Handle errors
-        logger.error({ entry: err });
+        logger.error({ entry: JSON.stringify(err, null, 4) });
         res.status(500).send('Something went wrong; check the logs.');
       });
   } else {

@@ -9,22 +9,18 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/mdaniels5757/cloud-functions-gmail-nodejs.git"
+    "url": "https://github.com/mdaniels5757/cloud-functions-gmail-nodejs-setup.git"
   },
   "engines": {
     "node": ">=20.0.0"
   },
   "scripts": {
     "fix": "semistandard --fix",
-    "lint": "semistandard",
-    "test": "mocha"
+    "lint": "semistandard"
   },
   "dependencies": {
     "@google-cloud/datastore": "^9.0.0",
-    "@google-cloud/logging": "^11.1.0",
     "@google-cloud/logging-bunyan": "^5.1.0",
-    "@google-cloud/pubsub": "^4.5.0",
-    "@google-cloud/scheduler": "^4.3.0",
     "bunyan": "^1.8.15",
     "googleapis": "^140.0.0"
   },
@@ -32,12 +28,6 @@
     "@eslint/js": "^9.6.0",
     "eslint": "^9.6.0",
     "globals": "^15.6.0",
-    "mocha": "^10.5.0",
     "semistandard": "^17.0.0"
-  },
-  "semistandard": {
-    "env": [
-      "mocha"
-    ]
   }
 }
