@@ -25,7 +25,7 @@
     "googleapis": "^140.0.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.8.0",
+    "@eslint/js": "^9.9.0",
     "eslint": "^9.8.0",
     "globals": "^15.9.0",
     "semistandard": "^17.0.0"
